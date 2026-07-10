@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base:    #03050e;
+  --bg-card:    #07091a;
+  --bg-hover:   #0c1028;
+  --border:     rgba(0,220,255,0.1);
+  --border-lit: rgba(0,220,255,0.22);
+  --txt-1:      #e0f4ff;
+  --txt-2:      #6b85b0;
+  --txt-3:      #374d6b;
+  --pos:        #39ff14;
+  --neg:        #ff2d78;
+  --acc:        #00d4ff;
+  --ora:        #ffd60a;   /* amarelo elétrico — nav ativo */
+  --ora-dim:    rgba(255,214,10,0.1);
+  --warn:       #ff9f0a;
+  /* structural */
+  --sidebar-bg:    linear-gradient(180deg, #05070f 0%, #03040c 100%);
+  --bg-header:     rgba(3,5,14,0.9);
+  --bg-kpi-strip:  rgba(5,7,18,0.85);
+}
+
+[data-theme="light"] {
+  --bg-base:    #f0f4f8;
+  --bg-card:    #ffffff;
+  --bg-hover:   #e8edf5;
+  --border:     rgba(0,0,0,0.09);
+  --border-lit: rgba(0,0,0,0.18);
+  --txt-1:      #1a202c;
+  --txt-2:      #4a5568;
+  --txt-3:      #718096;
+  --pos:        #00957a;
+  --neg:        #c0392b;
+  --acc:        #4c63d2;
+  --ora:        #e67e00;
+  --ora-dim:    rgba(230,126,0,0.1);
+  --warn:       #c05621;
+  /* structural */
+  --sidebar-bg:   linear-gradient(180deg, #ffffff 0%, #fdf6ed 100%);
+  --bg-header:    rgba(240,244,248,0.92);
+  --bg-kpi-strip: rgba(255,255,255,0.85);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-theme="light"] .chart-tooltip {
+  background: rgba(255,255,255,0.97) !important;
+  border: 1px solid rgba(0,0,0,0.12) !important;
+  color: #1a202c !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(230,126,0,0.3); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(230,126,0,0.5); }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; background: var(--bg-base); color: var(--txt-1); font-family: 'Inter', system-ui, sans-serif; }
+
+#root { height: 100vh; display: flex; overflow: hidden; }
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar           { width: 5px; height: 5px; }
+::-webkit-scrollbar-track     { background: transparent; }
+::-webkit-scrollbar-thumb     { background: rgba(0,212,255,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(0,212,255,0.55); }
+
+/* ── Glass card ────────────────────────────────────────────── */
+.glass {
+  background: rgba(7,9,26,0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,220,255,0.1);
+  border-radius: 14px;
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+.glass:hover {
+  border-color: rgba(0,220,255,0.22);
+  box-shadow: 0 0 18px rgba(0,212,255,0.07), 0 6px 28px rgba(0,0,0,0.6);
+}
+
+/* ── Gradient text ─────────────────────────────────────────── */
+.grad-text {
+  background: linear-gradient(135deg, #00d4ff, #bf5fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── View transition ───────────────────────────────────────── */
+.view-enter { animation: slideUp 0.25s ease-out; }
+
+/* ── Positive / negative ───────────────────────────────────── */
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.neu { color: var(--txt-2); }
+
+/* ── Tag badges ─────────────────────────────────────────────── */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.tag-pos { background: rgba(57,255,20,0.1);   color: var(--pos); }
+.tag-neg { background: rgba(255,45,120,0.1);  color: var(--neg); }
+.tag-neu { background: rgba(0,212,255,0.1);   color: var(--acc); }
+
+/* ── Chart tooltip ──────────────────────────────────────────── */
+.chart-tooltip {
+  background: rgba(3,5,18,0.97) !important;
+  border: 1px solid rgba(0,220,255,0.18) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  color: #e0f4ff !important;
+  font-size: 0.82rem !important;
+  box-shadow: 0 0 20px rgba(0,212,255,0.1), 0 8px 32px rgba(0,0,0,0.7) !important;
+}
+
+/* ── Section title ──────────────────────────────────────────── */
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--txt-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.section-title::before {
+  content: '';
+  display: block;
+  width: 3px; height: 18px;
+  background: linear-gradient(135deg, #00d4ff, #bf5fff);
+  border-radius: 99px;
+}
+
+/* ── Recharts overrides ─────────────────────────────────────── */
+.recharts-text          { fill: #8892b0 !important; font-size: 11px; }
+.recharts-cartesian-axis-tick-value { fill: #8892b0 !important; }
+.recharts-legend-item-text          { color: #8892b0 !important; font-size: 0.8rem; }
+.recharts-default-legend            { padding-top: 8px !important; }
+
+/* ── Table ──────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.data-table thead th {
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--txt-2);
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.data-table thead th:hover { color: var(--txt-1); }
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody td { padding: 9px 12px; color: var(--txt-1); white-space: nowrap; }
+
+/* ── Progress bar ───────────────────────────────────────────── */
+.progress-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+/* ── Heatmap cell ───────────────────────────────────────────── */
+.hm-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 600;
+  border-radius: 4px;
+  aspect-ratio: 1;
+  transition: opacity 0.15s;
+  cursor: default;
+}
+.hm-cell:hover { opacity: 0.8; }
