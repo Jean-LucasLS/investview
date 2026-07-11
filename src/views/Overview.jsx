@@ -9,12 +9,12 @@ import ChartCard from '../components/ChartCard.jsx';
 import PortfolioChart from '../components/PortfolioChart.jsx';
 
 function categorizaRow(row) {
-  if (['Ação EUA','ETF EUA'].includes(row.tipo)) return 'Exterior';
-  if (row.tipo === 'Ação BR') return 'Ações BR';
-  if (row.tipo === 'FII')     return 'FIIs';
-  if (row.tipo === 'Tesouro') return 'Renda Fixa';
-  if (row.setor === 'Previdência') return 'Previdência';
-  return 'Outros';
+  if (['US Stock','US ETF'].includes(row.tipo)) return 'International';
+  if (row.tipo === 'BR Stock') return 'BR Stocks';
+  if (row.tipo === 'BR REIT')  return 'BR REITs';
+  if (row.tipo === 'Treasury') return 'Fixed Income';
+  if (row.setor === 'Pension') return 'Pension';
+  return 'Other';
 }
 
 const PIE_COLORS = ['#667eea','#00d4aa','#ffa726','#ab47bc','#26c6da','#ef5350','#a78bfa','#f472b6'];
@@ -73,16 +73,16 @@ export default function VisaoGeral({ df }) {
 
   // ── Table columns ─────────────────────────────────────────────────────
   const columns = [
-    { key: 'ativo',          label: 'Ativo' },
-    { key: 'tipo',           label: 'Tipo', render: (v) => (
+    { key: 'ativo',          label: 'Asset' },
+    { key: 'tipo',           label: 'Type', render: (v) => (
       <span className="tag tag-neu" style={{ background: `${TIPO_COLOR[v]}22`, color: TIPO_COLOR[v] }}>{v}</span>
     )},
-    { key: 'setor',          label: 'Setor' },
-    { key: 'totalInvestido', label: 'Investido',  format: 'brl',      align: 'right' },
-    { key: 'totalAtual',     label: 'Atual',       format: 'brl',      align: 'right' },
-    { key: 'ganho',          label: 'Ganho (R$)',  format: 'brl_gain', align: 'right' },
-    { key: 'pctGanho',       label: 'Ganho (%)',   format: 'pct',      align: 'right' },
-    { key: 'peso',           label: 'Peso (%)',    format: 'weight',   align: 'right' },
+    { key: 'setor',          label: 'Sector' },
+    { key: 'totalInvestido', label: 'Invested',   format: 'brl',      align: 'right' },
+    { key: 'totalAtual',     label: 'Current',    format: 'brl',      align: 'right' },
+    { key: 'ganho',          label: 'Gain (R$)',  format: 'brl_gain', align: 'right' },
+    { key: 'pctGanho',       label: 'Gain (%)',   format: 'pct',      align: 'right' },
+    { key: 'peso',           label: 'Weight (%)', format: 'weight',   align: 'right' },
   ];
 
   const BarTooltip = ({ active, payload, label }) => {
@@ -117,7 +117,7 @@ export default function VisaoGeral({ df }) {
 
       {/* ── Allocation pies ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Composição por Classe de Ativo">
+        <ChartCard title="Allocation by Asset Class">
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie data={byTipo} dataKey="value" nameKey="name" innerRadius={70} outerRadius={110}
@@ -143,7 +143,7 @@ export default function VisaoGeral({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Composição por Setor">
+        <ChartCard title="Allocation by Sector">
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie data={bySetor} dataKey="value" nameKey="name" innerRadius={70} outerRadius={110}
@@ -172,7 +172,7 @@ export default function VisaoGeral({ df }) {
 
       {/* ── Individual returns ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Rentabilidade por Ativo (%)">
+        <ChartCard title="Individual Return (%)">
           <ResponsiveContainer width="100%" height={BAR_H}>
             <BarChart data={sorted_pct} layout="vertical" margin={{ left: 10, right: 48, top: 4, bottom: 4 }}>
               <XAxis type="number" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false} />
@@ -188,7 +188,7 @@ export default function VisaoGeral({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Ganho / Perda Absoluto (R$)">
+        <ChartCard title="Absolute Gain / Loss (R$)">
           <ResponsiveContainer width="100%" height={BAR_H}>
             <BarChart data={sorted_abs} layout="vertical" margin={{ left: 10, right: 64, top: 4, bottom: 4 }}>
               <XAxis type="number" tickFormatter={v => brl(v)} tick={TICK_STYLE} axisLine={false} tickLine={false} />
@@ -206,7 +206,7 @@ export default function VisaoGeral({ df }) {
       </div>
 
       {/* ── Top 20 positions ── */}
-      <ChartCard title="Top 20 Posições — Valor Atual">
+      <ChartCard title="Top 20 Positions — Current Value">
         <ResponsiveContainer width="100%" height={320}>
           <BarChart data={top20} margin={{ left: 0, right: 20, top: 4, bottom: 40 }}>
             <XAxis dataKey="ativo" tick={{ ...TICK_STYLE, fontSize: 10 }} angle={-35} textAnchor="end" axisLine={false} tickLine={false} />
@@ -220,7 +220,7 @@ export default function VisaoGeral({ df }) {
                 </div>
               );
             }} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-            <Bar dataKey="totalAtual" name="Valor Atual" radius={[4,4,0,0]}>
+              <Bar dataKey="totalAtual" name="Current Value" radius={[4,4,0,0]}>
               {top20.map((e, i) => (
                 <Cell key={i} fill={TIPO_COLOR[e.tipo] ?? ACC} />
               ))}
@@ -231,7 +231,7 @@ export default function VisaoGeral({ df }) {
 
       {/* ── Return by class ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Retorno (%) por Classe">
+        <ChartCard title="Return (%) by Asset Class">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={byTipoGain} margin={{ left: 0, right: 20, top: 4, bottom: 20 }}>
               <XAxis dataKey="tipo" tick={{ ...TICK_STYLE, fontSize: 10 }} angle={-20} textAnchor="end" axisLine={false} tickLine={false} />
@@ -246,7 +246,7 @@ export default function VisaoGeral({ df }) {
                   </div>
                 );
               }} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-              <Bar dataKey="retorno" name="Retorno %" radius={[4,4,0,0]}>
+              <Bar dataKey="retorno" name="Return %" radius={[4,4,0,0]}>
                 {byTipoGain.map((e, i) => (
                   <Cell key={i} fill={TIPO_COLOR[e.tipo] ?? ACC} />
                 ))}
@@ -256,7 +256,7 @@ export default function VisaoGeral({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Ganho Absoluto (R$) por Classe">
+        <ChartCard title="Absolute Gain (R$) by Asset Class">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={byTipoGain} margin={{ left: 0, right: 20, top: 4, bottom: 20 }}>
               <XAxis dataKey="tipo" tick={{ ...TICK_STYLE, fontSize: 10 }} angle={-20} textAnchor="end" axisLine={false} tickLine={false} />
@@ -270,7 +270,7 @@ export default function VisaoGeral({ df }) {
                   </div>
                 );
               }} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-              <Bar dataKey="ganho" name="Ganho R$" radius={[4,4,0,0]}>
+              <Bar dataKey="ganho" name="Gain R$" radius={[4,4,0,0]}>
                 {byTipoGain.map((e, i) => (
                   <Cell key={i} fill={TIPO_COLOR[e.tipo] ?? ACC} />
                 ))}
@@ -283,8 +283,8 @@ export default function VisaoGeral({ df }) {
 
       {/* ── Full table ── */}
       <div className="glass" style={{ padding: '18px 20px' }}>
-        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>
-          Tabela Completa da Carteira
+        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--txt-1)', marginBottom: 16 }}>
+          Full Portfolio Table
         </p>
         <DataTable data={df} columns={columns} defaultSort={{ key: 'totalAtual', dir: 'desc' }} />
       </div>

@@ -1,23 +1,23 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid,
   Tooltip as RCTooltip, ResponsiveContainer, BarChart, Bar, Cell,
   LabelList, ReferenceLine, RadarChart, Radar, PolarGrid, PolarAngleAxis, Legend,
 } from 'recharts';
-import { useIndicators, LiveBadge } from '../hooks.jsx';
+import { useIndicators } from '../hooks.jsx';
 import { TICK_STYLE, GRID_STYLE, POS, NEG, ACC, brl, brlFull, pct, colorByValue } from '../utils.js';
 import ChartCard from '../components/ChartCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 
 const IND_OPTIONS = [
-  { key: 'PL',       label: 'P/L' },
-  { key: 'PVP',      label: 'P/VP' },
+  { key: 'PL',       label: 'P/E' },
+  { key: 'PVP',      label: 'P/B' },
   { key: 'DY',       label: 'DY (%)' },
   { key: 'ROE',      label: 'ROE (%)' },
   { key: 'ROA',      label: 'ROA (%)' },
   { key: 'EVEBITDA', label: 'EV/EBITDA' },
-  { key: 'MargemLiq',label: 'Margem Líq. (%)' },
-  { key: 'MargemOp', label: 'Margem Op. (%)' },
+  { key: 'MargemLiq',label: 'Net Margin (%)' },
+  { key: 'MargemOp', label: 'Op. Margin (%)' },
   { key: 'Beta',     label: 'Beta' },
 ];
 
@@ -27,14 +27,16 @@ function getSetorColor(setor, setores) {
   return SETOR_COLORS[setores.indexOf(setor) % SETOR_COLORS.length];
 }
 
-export default function AcoesBR({ df }) {
+export default function AcoesBR({ df, onStatusChange }) {
   const [selectedInd, setSelectedInd] = useState('PL');
 
-  const br      = useMemo(() => df.filter(r => r.tipo === 'Ação BR' && r.tickerYF), [df]);
+  const br      = useMemo(() => df.filter(r => r.tipo === 'BR Stock' && r.tickerYF), [df]);
   const setores = useMemo(() => [...new Set(br.map(r => r.setor))], [br]);
   const tickers = useMemo(() => br.map(r => r.tickerYF), [br]);
 
   const { indicators, status: indStatus } = useIndicators(tickers);
+
+  useEffect(() => { onStatusChange?.(indStatus); }, [indStatus]);
 
   const enriched = useMemo(() => br.map(r => ({
     ...r, ...(indicators[r.tickerYF] ?? {}),
@@ -69,12 +71,12 @@ export default function AcoesBR({ df }) {
   }, [enriched]);
 
   const tableColumns = [
-    { key: 'ativo',          label: 'Ativo' },
-    { key: 'setor',          label: 'Setor' },
-    { key: 'totalInvestido', label: 'Invest. (R$)',  format: 'brl',  align: 'right' },
-    { key: 'pctGanho',       label: 'Ganho (%)',     format: 'pct',  align: 'right' },
-    { key: 'PL',             label: 'P/L',  align: 'right', render: v => v?.toFixed(1) ?? '—' },
-    { key: 'PVP',            label: 'P/VP', align: 'right', render: v => v?.toFixed(2) ?? '—' },
+    { key: 'ativo',          label: 'Asset' },
+    { key: 'setor',          label: 'Sector' },
+    { key: 'totalInvestido', label: 'Invested (R$)', format: 'brl',  align: 'right' },
+    { key: 'pctGanho',       label: 'Gain (%)',      format: 'pct',  align: 'right' },
+    { key: 'PL',             label: 'P/E',  align: 'right', render: v => v?.toFixed(1) ?? '—' },
+    { key: 'PVP',            label: 'P/B',  align: 'right', render: v => v?.toFixed(2) ?? '—' },
     { key: 'DY',             label: 'DY %', align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
     { key: 'ROE',            label: 'ROE %',align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
     { key: 'Beta',           label: 'Beta', align: 'right', render: v => v?.toFixed(2) ?? '—' },
@@ -87,8 +89,8 @@ export default function AcoesBR({ df }) {
       <div className="chart-tooltip">
         <p style={{ fontWeight: 600, color: '#e2e8f0' }}>{d.ativo}</p>
         <p style={{ color: '#8892b0' }}>{d.setor}</p>
-        <p>Posição: {brl(d.z)}</p>
-        <p style={{ color: colorByValue(d.pct) }}>Ganho: {pct(d.pct)}</p>
+        <p>Position: {brl(d.z)}</p>
+        <p style={{ color: colorByValue(d.pct) }}>Gain: {pct(d.pct)}</p>
       </div>
     );
   };
@@ -96,11 +98,9 @@ export default function AcoesBR({ df }) {
   return (
     <div className="view-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      <div style={{ display:'flex', justifyContent:'flex-end' }}><LiveBadge status={indStatus} /></div>
-
       {/* ── P/L × DY and P/VP × ROE ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="P/L × Dividend Yield — Valuation vs Dividendos">
+        <ChartCard title="P/E × Dividend Yield — Valuation vs Dividends">
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -123,7 +123,7 @@ export default function AcoesBR({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="P/VP × ROE — Preço/Patrimônio vs Retorno">
+        <ChartCard title="P/B × ROE — Price/Book vs Return">
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -148,7 +148,7 @@ export default function AcoesBR({ df }) {
       </div>
 
       {/* ── Indicator selector bar chart ── */}
-      <ChartCard title={`Comparação por Indicador — ${IND_OPTIONS.find(o => o.key === selectedInd)?.label}`}>
+      <ChartCard title={`Indicator Comparison — ${IND_OPTIONS.find(o => o.key === selectedInd)?.label}`}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {IND_OPTIONS.map(o => (
             <button key={o.key} onClick={() => setSelectedInd(o.key)} style={{
@@ -182,7 +182,7 @@ export default function AcoesBR({ df }) {
       </ChartCard>
 
       {/* ── Radar chart ── */}
-      <ChartCard title="Radar Multi-Indicador (normalizado 0–100)">
+      <ChartCard title="Multi-Indicator Radar (normalised 0–100)">
         <ResponsiveContainer width="100%" height={320}>
           <RadarChart data={radarData}>
             <PolarGrid stroke="rgba(255,255,255,0.08)" />
@@ -203,7 +203,7 @@ export default function AcoesBR({ df }) {
 
       {/* ── Table ── */}
       <div className="glass" style={{ padding: '18px 20px' }}>
-        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>
+        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--txt-1)', marginBottom: 16 }}>
           Tabela — Ações BR com Indicadores
         </p>
         <DataTable data={enriched} columns={tableColumns} defaultSort={{ key: 'totalInvestido', dir: 'desc' }} />

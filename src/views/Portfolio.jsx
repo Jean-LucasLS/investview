@@ -1,22 +1,22 @@
-// src/views/Carteira.jsx — Tabela completa da carteira com filtros e indicadores visuais
+// src/views/Portfolio.jsx — Full portfolio table with filters and visual indicators
 import { useState, useMemo } from 'react';
 import { ArrowUp, ArrowDown, ArrowUpDown, Search, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { TIPO_COLOR, TIPO_COLOR_LIGHT, brlFull, pct, POS, NEG } from '../utils.js';
 
-const FILTERS = ['Todos', 'Ação BR', 'Ação EUA', 'ETF EUA', 'FII', 'Tesouro', 'Fundo'];
+const FILTERS = ['All', 'BR Stock', 'US Stock', 'US ETF', 'BR REIT', 'Treasury', 'Fund'];
 
 const COLS = [
-  { key: 'ativo',          label: 'Ativo',       align: 'left',  w: '13%' },
-  { key: 'tipo',           label: 'Tipo',        align: 'left',  w: '8%'  },
-  { key: 'setor',          label: 'Setor',       align: 'left',  w: '11%' },
-  { key: 'qtd',            label: 'Qtd',         align: 'right', w: '6%'  },
-  { key: 'precoMedio',     label: 'PM',          align: 'right', w: '8%'  },
-  { key: 'precoAtual',     label: 'Cotação',     align: 'right', w: '9%'  },
-  { key: 'totalInvestido', label: 'Investido',   align: 'right', w: '9%'  },
-  { key: 'totalAtual',     label: 'Atual',       align: 'right', w: '9%'  },
-  { key: 'ganho',          label: 'Ganho/Perda', align: 'right', w: '10%' },
-  { key: 'pctGanho',       label: '% Ganho',     align: 'right', w: '9%'  },
-  { key: 'peso',           label: 'Peso',        align: 'left',  w: '9%'  },
+  { key: 'ativo',          label: 'Asset',       align: 'left',  w: '13%' },
+  { key: 'tipo',           label: 'Type',        align: 'left',  w: '8%'  },
+  { key: 'setor',          label: 'Sector',      align: 'left',  w: '11%' },
+  { key: 'qtd',            label: 'Qty',         align: 'right', w: '6%'  },
+  { key: 'precoMedio',     label: 'Avg Price',   align: 'right', w: '8%'  },
+  { key: 'precoAtual',     label: 'Price',       align: 'right', w: '9%'  },
+  { key: 'totalInvestido', label: 'Invested',    align: 'right', w: '9%'  },
+  { key: 'totalAtual',     label: 'Current',     align: 'right', w: '9%'  },
+  { key: 'ganho',          label: 'Gain/Loss',   align: 'right', w: '10%' },
+  { key: 'pctGanho',       label: '% Gain',      align: 'right', w: '9%'  },
+  { key: 'peso',           label: 'Weight',      align: 'left',  w: '9%'  },
 ];
 
 function SortIcon({ dir }) {
@@ -52,7 +52,7 @@ function BrlCell({ value, muted }) {
 }
 
 export default function Carteira({ df }) {
-  const [filter,  setFilter]  = useState('Todos');
+  const [filter,  setFilter]  = useState('All');
   const [query,   setQuery]   = useState('');
   const [sortKey, setSortKey] = useState('totalAtual');
   const [sortDir, setSortDir] = useState('desc');
@@ -68,7 +68,7 @@ export default function Carteira({ df }) {
 
   const rows = useMemo(() => {
     let r = df;
-    if (filter !== 'Todos') r = r.filter(x => x.tipo === filter);
+    if (filter !== 'All') r = r.filter(x => x.tipo === filter);
     if (query.trim()) {
       const q = query.toLowerCase();
       r = r.filter(x =>
@@ -110,7 +110,7 @@ export default function Carteira({ df }) {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar ativo, setor…"
+              placeholder="Search asset, sector…"
             style={{
               padding: '7px 12px 7px 30px',
               background: 'var(--bg-hover)',
@@ -126,7 +126,7 @@ export default function Carteira({ df }) {
           {FILTERS.map(f => {
             const active = filter === f;
             const color  = TC[f] ?? 'var(--acc)';
-            const count  = f === 'Todos' ? df.length : (countByTipo[f] ?? 0);
+            const count  = f === 'All' ? df.length : (countByTipo[f] ?? 0);
             return (
               <button key={f} onClick={() => setFilter(f)} style={{
                 padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
@@ -151,11 +151,11 @@ export default function Carteira({ df }) {
         {/* Summary */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 18, alignItems: 'center' }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--txt-3)', marginBottom: 1 }}>Atual (filtrado)</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--txt-3)', marginBottom: 1 }}>Current (filtered)</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--txt-1)' }}>{brlFull(totalAtu)}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--txt-3)', marginBottom: 1 }}>Ganho/Perda</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--txt-3)', marginBottom: 1 }}>Gain/Loss</div>
             <div style={{ fontSize: '0.88rem', fontWeight: 700, color: gainColor }}>
               {totalGain >= 0 ? '+' : ''}{brlFull(totalGain)}
             </div>
@@ -315,7 +315,7 @@ export default function Carteira({ df }) {
             <tfoot>
               <tr style={{ borderTop: '2px solid var(--border-lit)', background: 'rgba(102,126,234,0.06)' }}>
                 <td colSpan={3} style={{ padding: '9px 12px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--txt-2)', textTransform: 'uppercase' }}>
-                  Total · {rows.length} ativos
+                  Total · {rows.length} assets
                 </td>
                 <td colSpan={3} />
                 <td style={{ padding: '9px 12px', textAlign: 'right', fontSize: '0.8rem', color: '#8892b0', fontWeight: 600 }}>
@@ -344,7 +344,7 @@ export default function Carteira({ df }) {
 
         {rows.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#4a5568', fontSize: '0.9rem' }}>
-            Nenhum ativo encontrado
+            No assets found
           </div>
         )}
       </div>

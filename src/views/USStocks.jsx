@@ -1,37 +1,39 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid,
   Tooltip as RCTooltip, ResponsiveContainer, BarChart, Bar, Cell,
   LabelList, ReferenceLine, Legend,
 } from 'recharts';
-import { useIndicators, LiveBadge } from '../hooks.jsx';
+import { useIndicators } from '../hooks.jsx';
 import { TICK_STYLE, GRID_STYLE, ACC, brl, pct, colorByValue } from '../utils.js';
 import ChartCard from '../components/ChartCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 
 const IND_OPTIONS = [
-  { key: 'PL',        label: 'P/L' },
+  { key: 'PL',        label: 'P/E' },
   { key: 'DY',        label: 'DY (%)' },
   { key: 'ROE',       label: 'ROE (%)' },
   { key: 'ROA',       label: 'ROA (%)' },
   { key: 'EVEBITDA',  label: 'EV/EBITDA' },
-  { key: 'MargemLiq', label: 'Margem Líq. (%)' },
-  { key: 'MargemOp',  label: 'Margem Op. (%)' },
+  { key: 'MargemLiq', label: 'Net Margin (%)' },
+  { key: 'MargemOp',  label: 'Op. Margin (%)' },
   { key: 'Beta',      label: 'Beta' },
 ];
 
-const TIPO_C = { 'Ação EUA': '#667eea', 'ETF EUA': '#26c6da' };
+const TIPO_C = { 'US Stock': '#667eea', 'US ETF': '#26c6da' };
 const SETOR_COLORS = ['#667eea','#00d4aa','#ffa726','#ab47bc','#26c6da','#ef5350','#a78bfa','#f472b6'];
 function getSeColor(setor, setores) { return SETOR_COLORS[setores.indexOf(setor) % SETOR_COLORS.length]; }
 
-export default function AcoesEUA({ df }) {
+export default function AcoesEUA({ df, onStatusChange }) {
   const [selectedInd, setSelectedInd] = useState('PL');
 
-  const eua     = useMemo(() => df.filter(r => ['Ação EUA','ETF EUA'].includes(r.tipo) && r.tickerYF), [df]);
+  const eua     = useMemo(() => df.filter(r => ['US Stock','US ETF'].includes(r.tipo) && r.tickerYF), [df]);
   const setores = useMemo(() => [...new Set(eua.map(r => r.setor))], [eua]);
   const tickers = useMemo(() => eua.map(r => r.tickerYF), [eua]);
 
   const { indicators, status: indStatus } = useIndicators(tickers);
+
+  useEffect(() => { onStatusChange?.(indStatus); }, [indStatus]);
 
   const enriched = useMemo(() =>
     eua.map(r => ({ ...r, ...(indicators[r.tickerYF] ?? {}) }))
@@ -64,34 +66,32 @@ export default function AcoesEUA({ df }) {
       <div className="chart-tooltip">
         <p style={{ fontWeight: 600, color: '#e2e8f0' }}>{d.ativo}</p>
         <p style={{ color: '#8892b0' }}>{d.setor}</p>
-        <p>Posição: {brl(d.z)}</p>
-        <p style={{ color: colorByValue(d.pctg) }}>Ganho: {pct(d.pctg)}</p>
+        <p>Position: {brl(d.z)}</p>
+        <p style={{ color: colorByValue(d.pctg) }}>Gain: {pct(d.pctg)}</p>
       </div>
     );
   };
 
   const tableColumns = [
-    { key: 'ativo',          label: 'Ativo' },
-    { key: 'tipo',           label: 'Tipo' },
-    { key: 'setor',          label: 'Setor' },
-    { key: 'totalAtual',     label: 'Valor (R$)',   format: 'brl',  align: 'right' },
-    { key: 'pctGanho',       label: 'Ganho (%)',    format: 'pct',  align: 'right' },
-    { key: 'PL',             label: 'P/L',     align: 'right', render: v => v?.toFixed(1) ?? '—' },
-    { key: 'DY',             label: 'DY %',    align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
-    { key: 'ROE',            label: 'ROE %',   align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
-    { key: 'EVEBITDA',       label: 'EV/EBITDA', align: 'right', render: v => v?.toFixed(1) ?? '—' },
-    { key: 'Beta',           label: 'Beta',    align: 'right', render: v => v?.toFixed(2) ?? '—' },
-    { key: 'MargemLiq',      label: 'Marg. Líq.%', align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
+    { key: 'ativo',          label: 'Asset' },
+    { key: 'tipo',           label: 'Type' },
+    { key: 'setor',          label: 'Sector' },
+    { key: 'totalAtual',     label: 'Value (R$)',    format: 'brl',  align: 'right' },
+    { key: 'pctGanho',       label: 'Gain (%)',      format: 'pct',  align: 'right' },
+    { key: 'PL',             label: 'P/E',        align: 'right', render: v => v?.toFixed(1) ?? '—' },
+    { key: 'DY',             label: 'DY %',       align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
+    { key: 'ROE',            label: 'ROE %',      align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
+    { key: 'EVEBITDA',       label: 'EV/EBITDA',  align: 'right', render: v => v?.toFixed(1) ?? '—' },
+    { key: 'Beta',           label: 'Beta',       align: 'right', render: v => v?.toFixed(2) ?? '—' },
+    { key: 'MargemLiq',      label: 'Net Margin %', align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
   ];
 
   return (
     <div className="view-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      <div style={{ display:'flex', justifyContent:'flex-end' }}><LiveBadge status={indStatus} /></div>
-
       {/* ── Scatter P/L × DY and ROE × Margem ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="P/L × Dividend Yield — Ações EUA">
+        <ChartCard title="P/E × Dividend Yield — US Stocks">
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -110,7 +110,7 @@ export default function AcoesEUA({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="ROE × Margem Líquida — Ações EUA">
+        <ChartCard title="ROE × Net Margin — US Stocks">
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -131,7 +131,7 @@ export default function AcoesEUA({ df }) {
       </div>
 
       {/* ── EV/EBITDA × P/L matrix ── */}
-      <ChartCard title="EV/EBITDA × P/L — Matriz de Valuation">
+      <ChartCard title="EV/EBITDA × P/E — Valuation Matrix">
         <ResponsiveContainer width="100%" height={280}>
           <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
             <CartesianGrid {...GRID_STYLE} />
@@ -148,7 +148,7 @@ export default function AcoesEUA({ df }) {
                   <p style={{ fontWeight: 600 }}>{d.ativo}</p>
                   <p style={{ color: '#8892b0' }}>P/L: {d.x?.toFixed(1)}</p>
                   <p style={{ color: '#8892b0' }}>EV/EBITDA: {d.y?.toFixed(1)}</p>
-                  <p style={{ color: colorByValue(d.pctg) }}>Ganho: {pct(d.pctg)}</p>
+                  <p style={{ color: colorByValue(d.pctg) }}>Gain: {pct(d.pctg)}</p>
                 </div>
               );
             }} />
@@ -162,7 +162,7 @@ export default function AcoesEUA({ df }) {
       </ChartCard>
 
       {/* ── Indicator bar ── */}
-      <ChartCard title={`Comparação por Indicador — ${IND_OPTIONS.find(o => o.key === selectedInd)?.label}`}>
+      <ChartCard title={`Indicator Comparison — ${IND_OPTIONS.find(o => o.key === selectedInd)?.label}`}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {IND_OPTIONS.map(o => (
             <button key={o.key} onClick={() => setSelectedInd(o.key)} style={{
@@ -197,8 +197,8 @@ export default function AcoesEUA({ df }) {
 
       {/* ── Table ── */}
       <div className="glass" style={{ padding: '18px 20px' }}>
-        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>
-          Tabela — Ações e ETFs EUA
+        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--txt-1)', marginBottom: 16 }}>
+          Table — US Stocks &amp; ETFs
         </p>
         <DataTable data={enriched} columns={tableColumns} defaultSort={{ key: 'totalAtual', dir: 'desc' }} />
       </div>

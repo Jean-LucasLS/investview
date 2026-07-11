@@ -1,33 +1,33 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip as RCTooltip, Legend,
   ResponsiveContainer, ReferenceLine, CartesianGrid,
   BarChart, Bar, Cell, LabelList,
   ScatterChart, Scatter, ZAxis,
 } from 'recharts';
-import { useHistory, useBCB, buildPortfolioPerf, LiveBadge } from '../hooks.jsx';
+import { useHistory, useBCB, buildPortfolioPerf } from '../hooks.jsx';
 import { getPerformanceSeries } from '../data.js';
 import { TIPO_COLOR, POS, NEG, ACC, WARN, GRID_STYLE, TICK_STYLE, brl, brlFull, pct, colorByValue } from '../utils.js';
 import ChartCard from '../components/ChartCard.jsx';
 
-const PERIOD_YF = { '3 Meses': '3mo', '6 Meses': '6mo', '1 Ano': '1y', '2 Anos': '2y' };
-const BCB_N     = { '3 Meses': 70,   '6 Meses': 130,   '1 Ano': 265,  '2 Anos': 530  };
+const PERIOD_YF = { '3 Months': '3mo', '6 Months': '6mo', '1 Year': '1y', '2 Years': '2y' };
+const BCB_N     = { '3 Months': 70,   '6 Months': 130,   '1 Year': 265,  '2 Years': 530  };
 
-const PERIODS = ['3 Meses', '6 Meses', '1 Ano', '2 Anos'];
+const PERIODS = ['3 Months', '6 Months', '1 Year', '2 Years'];
 
 const LINE_COLORS = {
-  'Minha Carteira': WARN,
-  'IBOVESPA':       ACC,
-  'S&P 500':        '#26c6da',
-  'CDI':            POS,
-  'IPCA':           '#ff7043',
+  'My Portfolio': WARN,
+  'IBOVESPA':     ACC,
+  'S&P 500':      '#a78bfa',
+  'CDI':          POS,
+  'IPCA':         '#ff7043',
 };
 const LINE_DASH = {
-  'Minha Carteira': '0',
-  'IBOVESPA':       '6 3',
-  'S&P 500':        '2 4',
-  'CDI':            '8 3',
-  'IPCA':           '4 2 1 2',
+  'My Portfolio': '0',
+  'IBOVESPA':     '6 3',
+  'S&P 500':      '2 4',
+  'CDI':          '8 3',
+  'IPCA':         '4 2 1 2',
 };
 
 function buildCDISeries(bcbData, refDates) {
@@ -70,8 +70,8 @@ function buildIPCASeries(bcbData, refDates) {
   });
 }
 
-export default function Rentabilidade({ df }) {
-  const [period, setPeriod] = useState('1 Ano');
+export default function Rentabilidade({ df, onStatusChange }) {
+  const [period, setPeriod] = useState('1 Year');
   const yfPeriod = PERIOD_YF[period];
 
   const allTickers = useMemo(() => {
@@ -104,7 +104,7 @@ export default function Rentabilidade({ df }) {
 
     return refDates.map((date, i) => ({
       date,
-      'Minha Carteira': portPerf[i].value,
+      'My Portfolio': portPerf[i].value,
       'IBOVESPA': ibovSeries[i],
       'S&P 500':  vooSeries[i],
       'CDI':      cdiSeries[i],
@@ -116,7 +116,7 @@ export default function Rentabilidade({ df }) {
     if (!chartData.length) return {};
     const last = chartData[chartData.length - 1];
     return Object.fromEntries(
-      ['Minha Carteira','IBOVESPA','S&P 500','CDI','IPCA']
+      ['My Portfolio','IBOVESPA','S&P 500','CDI','IPCA']
         .map(k => [k, last[k] != null ? +(last[k] - 100).toFixed(2) : null])
         .filter(([,v]) => v != null)
     );
@@ -140,6 +140,8 @@ export default function Rentabilidade({ df }) {
   const xFmt = (v) => { if (!v) return ''; const d = new Date(v); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; };
   const isLive = histStatus === 'live';
 
+  useEffect(() => { onStatusChange?.(histStatus); }, [histStatus]);
+
   return (
     <div className="view-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Period selector + status */}
@@ -155,12 +157,11 @@ export default function Rentabilidade({ df }) {
             }}>{p}</button>
           ))}
         </div>
-        <LiveBadge status={histStatus} />
       </div>
 
       {!isLive && histStatus !== 'loading' && (
         <div style={{ padding:'8px 14px', borderRadius:8, background:'rgba(255,167,38,0.08)', border:'1px solid rgba(255,167,38,0.2)', fontSize:'0.78rem', color:'#ffa726' }}>
-          ⚠️ Dados simulados — inicie o servidor (<code>cd server &amp;&amp; node index.mjs</code>) para dados reais.
+          ⚠️ Simulated data — start the server (<code>cd server &amp;&amp; node index.mjs</code>) for real data.
         </div>
       )}
 
@@ -176,7 +177,7 @@ export default function Rentabilidade({ df }) {
       </div>
 
       {/* Performance chart */}
-      <ChartCard title={`Desempenho Acumulado — ${period} (Base 100)${isLive ? ' · Yahoo Finance + BCB' : ' · Estimado'}`}>
+      <ChartCard title={`Cumulative Performance — ${period} (Base 100)${isLive ? ' · Yahoo Finance + BCB' : ' · Estimated'}`}>
         <ResponsiveContainer width="100%" height={380}>
           <LineChart data={thin} margin={{ left:0, right:20, top:8, bottom:4 }}>
             <CartesianGrid {...GRID_STYLE} />
@@ -210,7 +211,7 @@ export default function Rentabilidade({ df }) {
 
       {/* Return by class + scatter */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-        <ChartCard title="Rentabilidade por Classe de Ativo">
+        <ChartCard title="Return (%) by Asset Class">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={byTipo} margin={{ left:0, right:20, top:4, bottom:20 }}>
               <XAxis dataKey="tipo" tick={{ ...TICK_STYLE, fontSize:10 }} angle={-20} textAnchor="end" axisLine={false} tickLine={false} />
@@ -228,12 +229,12 @@ export default function Rentabilidade({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Retorno (%) vs Tamanho da Posição">
+        <ChartCard title="Return (%) vs Position Size">
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ left:0, right:20, top:8, bottom:16 }}>
               <CartesianGrid {...GRID_STYLE} />
               <XAxis dataKey="x" type="number" tickFormatter={v => brl(v)} tick={TICK_STYLE} axisLine={false} tickLine={false}
-                label={{ value:'Valor Atual (R$)', position:'insideBottom', offset:-4, fill:'#8892b0', fontSize:11 }} />
+                label={{ value:'Current Value (R$)', position:'insideBottom', offset:-4, fill:'#8892b0', fontSize:11 }} />
               <YAxis dataKey="y" type="number" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false} />
               <ZAxis dataKey="z" range={[40,400]} />
               <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="4 4" />

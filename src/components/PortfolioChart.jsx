@@ -4,7 +4,7 @@ import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { getPerformanceSeries } from '../data.js';
 import { brl } from '../utils.js';
 
-const PERIODS = ['3 Meses', '6 Meses', '1 Ano', '2 Anos'];
+const PERIODS = ['3 Months', '6 Months', '1 Year', '2 Years'];
 
 function getThemeColors() {
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -24,7 +24,7 @@ export default function PortfolioChart() {
   const containerRef = useRef(null);
   const chartRef     = useRef(null);
   const seriesRef    = useRef(null);
-  const [period, setPeriod] = useState('1 Ano');
+  const [period, setPeriod] = useState('1 Year');
   const [tooltip, setTooltip] = useState(null);
 
   // Build / update chart
@@ -106,7 +106,7 @@ export default function PortfolioChart() {
 
     // Load data
     const raw = getPerformanceSeries(period);
-    const data = raw.map(d => ({ time: d.date, value: d['Minha Carteira'] }));
+    const data = raw.map(d => ({ time: d.date, value: d['My Portfolio'] }));
     seriesRef.current.setData(data);
     chartRef.current.timeScale().fitContent();
 
@@ -119,8 +119,8 @@ export default function PortfolioChart() {
   }, []);
 
   const data = getPerformanceSeries(period);
-  const first = data[0]?.['Minha Carteira'] ?? 100;
-  const last  = data[data.length - 1]?.['Minha Carteira'] ?? 100;
+  const first = data[0]?.['My Portfolio'] ?? 100;
+  const last  = data[data.length - 1]?.['My Portfolio'] ?? 100;
   const delta = last - first;
   const isUp  = delta >= 0;
 
@@ -130,10 +130,10 @@ export default function PortfolioChart() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div>
           <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--txt-1)' }}>
-            Evolução da Carteira
+            Portfolio Evolution
           </p>
           <p style={{ fontSize: '0.72rem', color: 'var(--txt-3)', marginTop: 2 }}>
-            Base 100 · dados simulados
+            Base 100 · simulated data
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function PortfolioChart() {
             <p style={{ fontSize: '1.1rem', fontWeight: 700, color: isUp ? 'var(--pos)' : 'var(--neg)', fontVariantNumeric: 'tabular-nums' }}>
               {isUp ? '▲' : '▼'} {Math.abs(delta).toFixed(2)}%
             </p>
-            <p style={{ fontSize: '0.7rem', color: 'var(--txt-3)' }}>retorno no período</p>
+            <p style={{ fontSize: '0.7rem', color: 'var(--txt-3)' }}>return in period</p>
           </div>
         )}
       </div>

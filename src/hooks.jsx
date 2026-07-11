@@ -8,19 +8,19 @@ export function LiveBadge({ status }) {
   if (status === 'loading') return (
     <span style={{ fontSize: '0.68rem', color: '#ffa726', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ffa726', animation: 'pulse 1s infinite' }} />
-      Carregando dados ao vivo…
+      Loading live data…
     </span>
   );
   if (status === 'live') return (
     <span style={{ fontSize: '0.68rem', color: '#00d4aa', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00d4aa' }} />
-      Dados ao vivo (Yahoo Finance)
+      Live data (Yahoo Finance)
     </span>
   );
   if (status === 'error') return (
     <span style={{ fontSize: '0.68rem', color: '#ff4b4b', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4b4b' }} />
-      API indisponível — dados estáticos
+      API unavailable — static data
     </span>
   );
   return null;

@@ -87,9 +87,9 @@ export default function Diversificacao({ df }) {
   }, [df, total]);
 
   function hhiLabel(h) {
-    if (h < 1000) return { label: 'Alta Diversificação', color: '#00d4aa' };
-    if (h < 2500) return { label: 'Diversificação Moderada', color: '#ffa726' };
-    return { label: 'Concentrada', color: '#ff4b4b' };
+    if (h < 1000) return { label: 'High Diversification', color: '#00d4aa' };
+    if (h < 2500) return { label: 'Moderate Diversification', color: '#ffa726' };
+    return { label: 'Concentrated', color: '#ff4b4b' };
   }
 
   const hhiInfo = hhiLabel(hhi);
@@ -113,10 +113,10 @@ export default function Diversificacao({ df }) {
       {/* ── HHI summary ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
         <div className="glass" style={{ padding: '14px 18px' }}>
-          <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>HHI — Ativos</p>
+          <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>HHI — Assets</p>
           <p style={{ fontSize: '1.4rem', fontWeight: 700, color: hhiInfo.color }}>{hhi.toFixed(0)}</p>
           <p style={{ fontSize: '0.75rem', color: hhiInfo.color }}>{hhiInfo.label}</p>
-          <p style={{ fontSize: '0.68rem', color: '#4a5568', marginTop: 4 }}>Índice Herfindahl-Hirschman (0–10000)</p>
+          <p style={{ fontSize: '0.68rem', color: '#4a5568', marginTop: 4 }}>Herfindahl-Hirschman Index (0–10000)</p>
         </div>
         <div className="glass" style={{ padding: '14px 18px' }}>
           <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>HHI — Classes</p>
@@ -124,14 +124,14 @@ export default function Diversificacao({ df }) {
           <p style={{ fontSize: '0.75rem', color: hhiLabel(hhiByTipo).color }}>{hhiLabel(hhiByTipo).label}</p>
         </div>
         <div className="glass" style={{ padding: '14px 18px' }}>
-          <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Nº de Ativos</p>
+          <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>No. of Assets</p>
           <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e2e8f0' }}>{df.length}</p>
-          <p style={{ fontSize: '0.75rem', color: '#8892b0' }}>{[...new Set(df.map(r => r.tipo))].length} classes · {[...new Set(df.map(r => r.setor))].length} setores</p>
+          <p style={{ fontSize: '0.75rem', color: '#8892b0' }}>{[...new Set(df.map(r => r.tipo))].length} classes · {[...new Set(df.map(r => r.setor))].length} sectors</p>
         </div>
       </div>
 
       {/* ── Treemap ── */}
-      <ChartCard title="Treemap — Classe → Ativo  (cor = classe · opacidade = tamanho)">
+      <ChartCard title="Treemap — Class → Asset  (color = class · opacity = size)">
         <ResponsiveContainer width="100%" height={460}>
           <Treemap
             data={treemapData}
@@ -157,7 +157,7 @@ export default function Diversificacao({ df }) {
 
       {/* ── Geo + Currency pies ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Exposição Geográfica">
+        <ChartCard title="Geographic Exposure">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={geoData} dataKey="value" nameKey="name" innerRadius={65} outerRadius={105}
@@ -184,7 +184,7 @@ export default function Diversificacao({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Exposição Cambial — BRL vs USD">
+        <ChartCard title="Currency Exposure — BRL vs USD">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={curData} dataKey="value" nameKey="name" innerRadius={65} outerRadius={105}
@@ -212,7 +212,7 @@ export default function Diversificacao({ df }) {
       </div>
 
       {/* ── Sector allocation ── */}
-      <ChartCard title="Alocação por Setor">
+      <ChartCard title="Sector Allocation">
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={sectorData} layout="vertical" margin={{ left: 10, right: 80, top: 4, bottom: 4 }}>
             <XAxis type="number" tickFormatter={v => brl(v)} tick={TICK_STYLE} axisLine={false} tickLine={false} />
@@ -236,7 +236,7 @@ export default function Diversificacao({ df }) {
       </ChartCard>
 
       {/* ── Nested donut ── */}
-      <ChartCard title="Hierarquia Classe → Setor (Sunburst)">
+      <ChartCard title="Class → Sector Hierarchy (Sunburst)">
         <ResponsiveContainer width="100%" height={320}>
           <PieChart>
             <Pie data={outerRing} dataKey="value" nameKey="name" innerRadius={120} outerRadius={150}

@@ -1,15 +1,21 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RCTooltip,
   ResponsiveContainer, Cell, ReferenceLine, LabelList,
   PieChart, Pie, Legend, ScatterChart, Scatter, ZAxis,
 } from 'recharts';
-import { useIndicators, LiveBadge } from '../hooks.jsx';
+import { useIndicators } from '../hooks.jsx';
 import { TICK_STYLE, GRID_STYLE, POS, NEG, ACC, WARN, brl, brlFull, pct, colorByValue } from '../utils.js';
 import ChartCard from '../components/ChartCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 
-const SEG_COLORS = { 'FII Logístico': '#00d4aa', 'FII Renda Urb.': '#667eea', 'FII CRI': '#ffa726' };
+const SEG_COLORS = {
+  'Logistics REIT':    '#00d4aa',
+  'Urban Income REIT': '#667eea',
+  'CRI REIT':          '#ffa726',
+  'Hybrid REIT':       '#ab47bc',
+  'Retail REIT':       '#26c6da',
+};
 const PIE_COLORS = ['#00d4aa','#667eea','#ffa726','#ab47bc','#26c6da','#ef5350'];
 
 function pvpColor(v) {
@@ -18,11 +24,13 @@ function pvpColor(v) {
   return NEG;
 }
 
-export default function FIIs({ df }) {
-  const fiis    = useMemo(() => df.filter(r => r.tipo === 'FII'), [df]);
+export default function FIIs({ df, onStatusChange }) {
+  const fiis    = useMemo(() => df.filter(r => r.tipo === 'BR REIT'), [df]);
   const tickers = useMemo(() => fiis.map(r => r.tickerYF).filter(Boolean), [fiis]);
 
   const { indicators, status: indStatus } = useIndicators(tickers);
+
+  useEffect(() => { onStatusChange?.(indStatus); }, [indStatus]);
 
   const enriched = useMemo(() =>
     fiis.map(r => ({
@@ -49,11 +57,11 @@ export default function FIIs({ df }) {
   const avgDY = dyData.length ? dyData.reduce((s,r) => s + r.DY, 0) / dyData.length : null;
 
   const tableColumns = [
-    { key: 'ativo',          label: 'FII' },
-    { key: 'setor',          label: 'Segmento' },
-    { key: 'totalInvestido', label: 'Invest. (R$)', format: 'brl', align: 'right' },
-    { key: 'totalAtual',     label: 'Atual (R$)',   format: 'brl', align: 'right' },
-    { key: 'pctGanho',       label: 'Ganho (%)',    format: 'pct', align: 'right' },
+    { key: 'ativo',          label: 'REIT' },
+    { key: 'setor',          label: 'Segment' },
+    { key: 'totalInvestido', label: 'Invested (R$)', format: 'brl', align: 'right' },
+    { key: 'totalAtual',     label: 'Current (R$)',  format: 'brl', align: 'right' },
+    { key: 'pctGanho',       label: 'Gain (%)',      format: 'pct', align: 'right' },
     { key: 'PVP',  label: 'P/VP',  align: 'right', render: v => v != null ? `${v.toFixed(2)}x` : '—',
       sortable: true },
     { key: 'DY',   label: 'DY (%)',align: 'right', render: v => v != null ? `${v.toFixed(1)}%` : '—' },
@@ -64,11 +72,9 @@ export default function FIIs({ df }) {
   return (
     <div className="view-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      <div style={{ display:'flex', justifyContent:'flex-end' }}><LiveBadge status={indStatus} /></div>
-
       {/* ── DY and P/VP ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Dividend Yield (DY %) dos FIIs">
+        <ChartCard title="Dividend Yield (DY %) — REITs">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={dyData} margin={{ left: 0, right: 20, top: 4, bottom: 20 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -76,7 +82,7 @@ export default function FIIs({ df }) {
               <YAxis tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false} />
               {avgDY && (
                 <ReferenceLine y={avgDY} stroke={WARN} strokeDasharray="5 3"
-                  label={{ value: `Média: ${avgDY.toFixed(1)}%`, fill: WARN, fontSize: 10, position: 'insideTopRight' }} />
+                  label={{ value: `Avg: ${avgDY.toFixed(1)}%`, fill: WARN, fontSize: 10, position: 'insideTopRight' }} />
               )}
               <RCTooltip content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
@@ -95,14 +101,14 @@ export default function FIIs({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="P/VP dos FIIs  (verde ≤1,05 · amarelo ≤1,20 · vermelho >1,20)">
+        <ChartCard title="P/B — REITs  (green ≤1.05 · yellow ≤1.20 · red >1.20)">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={pvpData} margin={{ left: 0, right: 20, top: 4, bottom: 20 }}>
               <CartesianGrid {...GRID_STYLE} />
               <XAxis dataKey="ativo" tick={{ ...TICK_STYLE, fontSize: 10 }} angle={-15} textAnchor="end" axisLine={false} tickLine={false} />
               <YAxis tick={TICK_STYLE} axisLine={false} tickLine={false} domain={[0, 'auto']} />
               <ReferenceLine y={1.0} stroke={WARN} strokeDasharray="5 3"
-                label={{ value: 'P/VP = 1,0', fill: WARN, fontSize: 10, position: 'insideTopRight' }} />
+                label={{ value: 'P/B = 1.0', fill: WARN, fontSize: 10, position: 'insideTopRight' }} />
               <RCTooltip content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
                 const v = payload[0].value;
@@ -124,7 +130,7 @@ export default function FIIs({ df }) {
 
       {/* ── Segment pie and P/VP × DY scatter ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Alocação por Segmento dos FIIs">
+        <ChartCard title="Allocation by REIT Segment">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={bySegmento} dataKey="value" nameKey="name" innerRadius={65} outerRadius={105}
@@ -152,7 +158,7 @@ export default function FIIs({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="P/VP × DY — Valuation vs Rendimento">
+        <ChartCard title="P/B × DY — Valuation vs Yield">
           <ResponsiveContainer width="100%" height={260}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 20 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -182,8 +188,8 @@ export default function FIIs({ df }) {
 
       {/* ── Table ── */}
       <div className="glass" style={{ padding: '18px 20px' }}>
-        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0', marginBottom: 16 }}>
-          Tabela — FIIs com Indicadores
+        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--txt-1)', marginBottom: 16 }}>
+          Table — REITs with Indicators
         </p>
         <DataTable data={enriched} columns={tableColumns} defaultSort={{ key: 'DY', dir: 'desc' }} />
       </div>

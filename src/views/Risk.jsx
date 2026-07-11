@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RCTooltip,
   ResponsiveContainer, Cell, LabelList, ReferenceLine,
   ScatterChart, Scatter, ZAxis, Legend,
 } from 'recharts';
 import { getRiskMetrics, CORR_TICKERS, CORR_MATRIX } from '../data.js';
-import { useHistory, calcVolFromHistory, calcCorrelation, dailyReturns, LiveBadge } from '../hooks.jsx';
+import { useHistory, calcVolFromHistory, calcCorrelation, dailyReturns } from '../hooks.jsx';
 import { TIPO_COLOR, TICK_STYLE, GRID_STYLE, POS, NEG, ACC, WARN, brl, pct, colorByValue } from '../utils.js';
 import ChartCard from '../components/ChartCard.jsx';
 
@@ -62,12 +62,14 @@ function HeatmapChart({ labels, matrix }) {
   );
 }
 
-export default function Risco({ df }) {
+export default function Risco({ df, onStatusChange }) {
   const staticRisk = useMemo(() => getRiskMetrics(df), [df]);
 
   // All equity tickers for live volatility
   const tickers = useMemo(() => df.filter(r => r.tickerYF).map(r => r.tickerYF), [df]);
   const { history, status: histStatus } = useHistory(tickers, '1y');
+
+  useEffect(() => { onStatusChange?.(histStatus); }, [histStatus]);
 
   // Compute live risk metrics from real price history
   const riskData = useMemo(() => {
@@ -134,15 +136,13 @@ export default function Risco({ df }) {
   return (
     <div className="view-enter" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      <div style={{ display:'flex', justifyContent:'flex-end' }}><LiveBadge status={histStatus} /></div>
-
       {/* ── Risk summary cards ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
         {[
-          { label: 'Vol. Média Carteira', value: `${portfolioVol}%`, color: volColor(portfolioVol) },
-          { label: 'VaR 95% (1 dia)', value: brl(-var95), color: NEG, note: 'Estimado' },
-          { label: 'Melhor Sharpe', value: sharpeData[0]?.ativo ?? '—', sub: sharpeData[0]?.sharpe?.toFixed(2), color: POS },
-          { label: 'Maior Volatilidade', value: volData[0]?.ativo ?? '—', sub: `${volData[0]?.vol}%`, color: NEG },
+          { label: 'Avg. Portfolio Vol.', value: `${portfolioVol}%`, color: volColor(portfolioVol) },
+          { label: 'VaR 95% (1 day)', value: brl(-var95), color: NEG, note: 'Estimated' },
+          { label: 'Best Sharpe', value: sharpeData[0]?.ativo ?? '—', sub: sharpeData[0]?.sharpe?.toFixed(2), color: POS },
+          { label: 'Highest Volatility', value: volData[0]?.ativo ?? '—', sub: `${volData[0]?.vol}%`, color: NEG },
         ].map((c, i) => (
           <div key={i} className="glass" style={{ padding: '14px 16px' }}>
             <p style={{ fontSize: '0.7rem', color: '#8892b0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{c.label}</p>
@@ -155,7 +155,7 @@ export default function Risco({ df }) {
 
       {/* ── Volatility + risk/return scatter ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Volatilidade Anualizada por Ativo (1 ano, estimada)">
+        <ChartCard title="Annualised Volatility by Asset (1 year, estimated)">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={volData} margin={{ left: 0, right: 20, top: 4, bottom: 40 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -178,14 +178,14 @@ export default function Risco({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Risco × Retorno (tamanho = posição)">
+        <ChartCard title="Risk × Return (size = position)">
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 16 }}>
               <CartesianGrid {...GRID_STYLE} />
-              <XAxis dataKey="vol" type="number" name="Volatilidade %" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false}
-                label={{ value: 'Volatilidade (%)', position: 'insideBottom', offset: -4, fill: '#8892b0', fontSize: 11 }} />
-              <YAxis dataKey="ret" type="number" name="Retorno %" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false}
-                label={{ value: 'Retorno (%)', angle: -90, position: 'insideLeft', fill: '#8892b0', fontSize: 11 }} />
+              <XAxis dataKey="vol" type="number" name="Volatility %" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false}
+                label={{ value: 'Volatility (%)', position: 'insideBottom', offset: -4, fill: '#8892b0', fontSize: 11 }} />
+              <YAxis dataKey="ret" type="number" name="Return %" tickFormatter={v => `${v}%`} tick={TICK_STYLE} axisLine={false} tickLine={false}
+                label={{ value: 'Return (%)', angle: -90, position: 'insideLeft', fill: '#8892b0', fontSize: 11 }} />
               <ZAxis dataKey="totalAtual" range={[60,600]} />
               <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeDasharray="4 4" />
               <RCTooltip content={({ active, payload }) => {
@@ -195,8 +195,8 @@ export default function Risco({ df }) {
                   <div className="chart-tooltip">
                     <p style={{ fontWeight: 600 }}>{d.ativo}</p>
                     <p style={{ color: '#8892b0' }}>{d.tipo}</p>
-                    <p>Volatilidade: {d.vol}%</p>
-                    <p style={{ color: colorByValue(d.ret) }}>Retorno: {pct(d.ret)}</p>
+                    <p>Volatility: {d.vol}%</p>
+                    <p style={{ color: colorByValue(d.ret) }}>Return: {pct(d.ret)}</p>
                     <p>{brl(d.totalAtual)}</p>
                   </div>
                 );
@@ -214,16 +214,16 @@ export default function Risco({ df }) {
       </div>
 
       {/* ── Correlation heatmap ── */}
-      <ChartCard title={`Matriz de Correlação${histStatus === 'live' ? ' (dados reais — 1 ano)' : ' (estática)'}`}>
+      <ChartCard title={`Correlation Matrix${histStatus === 'live' ? ' (live data — 1 year)' : ' (static)'}`}>
         <HeatmapChart labels={corrLabels} matrix={corrMatrix} />
         <p style={{ fontSize: '0.7rem', color: '#4a5568', marginTop: 12 }}>
-          Azul = correlação negativa · Vermelho = correlação positiva · Diagonal = 1,00
+          Blue = negative correlation · Red = positive correlation · Diagonal = 1.00
         </p>
       </ChartCard>
 
       {/* ── Beta + Sharpe ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ChartCard title="Beta — Sensibilidade ao Mercado">
+        <ChartCard title="Beta — Market Sensitivity">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={betaData} margin={{ left: 0, right: 20, top: 4, bottom: 40 }}>
               <CartesianGrid {...GRID_STYLE} />
@@ -249,7 +249,7 @@ export default function Risco({ df }) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Índice de Sharpe Estimado (CDI = 10,75%)">
+        <ChartCard title="Estimated Sharpe Ratio (CDI = 10.75%)">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={sharpeData.slice(0,12)} layout="vertical" margin={{ left: 10, right: 48, top: 4, bottom: 4 }}>
               <XAxis type="number" tick={TICK_STYLE} axisLine={false} tickLine={false} />

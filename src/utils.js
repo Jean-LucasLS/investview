@@ -1,31 +1,31 @@
 // src/utils.js — Formatters, color maps, shared constants
 
 export const TIPO_COLOR = {
-  'Ação BR':  '#39ff14',   // neon lime
-  'Ação EUA': '#00d4ff',   // electric cyan
-  'FII':      '#ffd60a',   // electric yellow
-  'Tesouro':  '#bf5fff',   // neon violet
-  'ETF EUA':  '#ff9f0a',   // neon orange
-  'Fundo':    '#ff2d78',   // hot pink
+  'BR Stock':  '#39ff14',
+  'US Stock':  '#00d4ff',
+  'BR REIT':   '#ffd60a',
+  'Treasury':  '#bf5fff',
+  'US ETF':    '#ff9f0a',
+  'Fund':      '#ff2d78',
 };
 
 // Versões escuras para texto legível no light mode
 export const TIPO_COLOR_LIGHT = {
-  'Ação BR':  '#16a34a',
-  'Ação EUA': '#0369a1',
-  'FII':      '#92400e',
-  'Tesouro':  '#7c3aed',
-  'ETF EUA':  '#c2410c',
-  'Fundo':    '#be185d',
+  'BR Stock':  '#16a34a',
+  'US Stock':  '#0369a1',
+  'BR REIT':   '#92400e',
+  'Treasury':  '#7c3aed',
+  'US ETF':    '#c2410c',
+  'Fund':      '#be185d',
 };
 
 export const CAT_COLOR = {
-  'Ações BR':   '#39ff14',
-  'Exterior':   '#00d4ff',
-  'FIIs':       '#ffd60a',
-  'Renda Fixa': '#bf5fff',
-  'Previdência': '#ff2d78',
-  'Outros':     '#8892b0',
+  'BR Stocks':    '#39ff14',
+  'International':'#00d4ff',
+  'BR REITs':     '#ffd60a',
+  'Fixed Income': '#bf5fff',
+  'Pension':      '#ff2d78',
+  'Other':        '#8892b0',
 };
 
 export const POS  = '#39ff14';   // neon lime
