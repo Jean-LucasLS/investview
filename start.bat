@@ -3,7 +3,7 @@ echo Starting Investment Dashboard...
 
 :: Start API server in background
 echo [1/2] Starting Yahoo Finance API server on port 3001...
-start "API Server" cmd /k "cd /d %~dp0server && node index.mjs"
+start "API Server" cmd /k "cd /d %~dp0server && python main.py"
 
 :: Give the server a moment to start
 timeout /t 2 /nobreak >nul
